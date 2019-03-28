@@ -113,7 +113,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         count_per_image.append(len(bounding_boxes))
         if len(bounding_boxes) == 0:
-            img_list.append(img_to_array(img))
+            img_list.append(img)
         for j in range(len(bounding_boxes)):
                 det = np.squeeze(bounding_boxes[j,0:4])
                 bb = np.zeros(4, dtype=np.int32)
