@@ -45,8 +45,9 @@ from six.moves import xrange
 
 def main(args):
     print("Initializing")
-    print("Reading input from %s to %s" % (args.start, args.end))
-    image_names = os.listdir(args.image_paths)[args.start:args.end]
+    start, end = args.start, args.end
+    print("Reading input from %s to %s" % (start, end))
+    image_names = os.listdir(args.image_paths)[start:end]
     submission = pd.DataFrame(image_names, columns=['image'])
     image_files = [os.path.join(args.image_paths, img) for img in image_names]
     images, cout_per_image, nrof_samples = load_and_align_data(image_files, args.image_size, args.margin, args.gpu_memory_fraction)
@@ -65,6 +66,7 @@ def main(args):
             # Run forward pass to calculate embeddings
                 feed_dict = { images_placeholder: images , phase_train_placeholder:False}
                 emb = sess.run(embeddings, feed_dict=feed_dict)
+                print(type(emb))
                 classifier_filename_exp = os.path.expanduser(args.classifier_filename)
                 with open(classifier_filename_exp, 'rb') as infile:
                     (model, class_names) = pickle.load(infile)
@@ -74,8 +76,9 @@ def main(args):
                 predictions = np.argsort(-predictions, axis=1)[:, :5]
                 class_names = np.asarray(class_names).astype('int')
                 p = []
-                for i in range(nrof_samples):
-                    p.append(class_names[predictions[i, :]])
+                for i in range(end - start):
+                    temp = predictions[i, :]
+                    p.append(class_names[temp])
                 submission['label'] = p
                 submission.label = submission.label.apply(lambda x: str(x)[1:-1])
                 submission.to_csv(args.output_dir, index=False)
@@ -109,6 +112,8 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         count_per_image.append(len(bounding_boxes))
+        if len(bounding_boxes) == 0:
+            img_list.append(img_to_array(img))
         for j in range(len(bounding_boxes)):
                 det = np.squeeze(bounding_boxes[j,0:4])
                 bb = np.zeros(4, dtype=np.int32)
