@@ -64,15 +64,30 @@ def main(args):
                 phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
 
             # Run forward pass to calculate embeddings
-                feed_dict = { images_placeholder: images , phase_train_placeholder:False}
+                feed_dict = {images_placeholder: images , phase_train_placeholder:False}
                 emb = sess.run(embeddings, feed_dict=feed_dict)
-                print(type(emb))
                 classifier_filename_exp = os.path.expanduser(args.classifier_filename)
                 with open(classifier_filename_exp, 'rb') as infile:
                     (model, class_names) = pickle.load(infile)
                 print('Loaded classifier model from file "%s"\n' % classifier_filename_exp)
                 predictions = model.predict_proba(emb)
-                print("Predicted. Exporting results into a csv file...")
+
+                '''=========================================
+                =============== Original File =============='''
+
+                best_class_indices = np.argmax(predictions, axis=1)
+                best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+                k=0
+                for i in range(nrof_samples):
+                    print("\npeople in image %s :" %(image_files[i]))
+                    for j in range(cout_per_image[i]):
+                        print('%s: %.3f' % (class_names[best_class_indices[k]], best_class_probabilities[k]))
+                        k+=1
+
+
+                '''========================================='''
+
+                print('==================================')
                 predictions = np.argsort(-predictions, axis=1)[:, :5]
                 class_names = np.asarray(class_names).astype('int')
                 p = []
@@ -81,16 +96,10 @@ def main(args):
                     p.append(class_names[temp])
                 submission['label'] = p
                 submission.label = submission.label.apply(lambda x: str(x)[1:-1])
-                submission.to_csv(args.output_dir, index=False)
+                for i, row in submission.iterrows():
+                    print("%s : %s" % (row['image'], row['label']))
 
-                # best_class_indices = np.argmax(predictions, axis=1)
-                # best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                # k=0
-                # for i in range(nrof_samples):
-                #     print("\npeople in image %s :" %(image_files[i]))
-                #     for j in range(cout_per_image[i]):
-                #         print('%s: %.3f' % (class_names[best_class_indices[k]], best_class_probabilities[k]))
-                #         k+=1
+
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
 
     minsize = 20 # minimum size of face
@@ -113,7 +122,7 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         count_per_image.append(len(bounding_boxes))
         if len(bounding_boxes) == 0:
-            img_list.append(img_to_array(img))
+            img_list.append(img)
         for j in range(len(bounding_boxes)):
                 det = np.squeeze(bounding_boxes[j,0:4])
                 bb = np.zeros(4, dtype=np.int32)

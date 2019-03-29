@@ -47,7 +47,7 @@ def main(args):
     print("Initializing")
     start, end = args.start, args.end
     print("Reading input from %s to %s" % (start, end))
-    image_names = os.listdir(args.image_paths)[start:end]
+    image_names = sorted(os.listdir(args.image_paths))[start:end]
     submission = pd.DataFrame(image_names, columns=['image'])
     image_files = [os.path.join(args.image_paths, img) for img in image_names]
     images, cout_per_image, nrof_samples = load_and_align_data(image_files, args.image_size, args.margin, args.gpu_memory_fraction)
@@ -64,7 +64,7 @@ def main(args):
                 phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
 
             # Run forward pass to calculate embeddings
-                feed_dict = { images_placeholder: images , phase_train_placeholder:False}
+                feed_dict = {images_placeholder: images , phase_train_placeholder:False}
                 emb = sess.run(embeddings, feed_dict=feed_dict)
                 print(type(emb))
                 classifier_filename_exp = os.path.expanduser(args.classifier_filename)
@@ -72,7 +72,7 @@ def main(args):
                     (model, class_names) = pickle.load(infile)
                 print('Loaded classifier model from file "%s"\n' % classifier_filename_exp)
                 predictions = model.predict_proba(emb)
-                print("Predicted. Exporting results into a csv file...")
+                print("Predicted. Exporting results to a csv file...")
                 predictions = np.argsort(-predictions, axis=1)[:, :5]
                 class_names = np.asarray(class_names).astype('int')
                 p = []
