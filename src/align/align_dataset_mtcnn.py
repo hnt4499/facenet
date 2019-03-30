@@ -126,7 +126,7 @@ def main(args):
 
     print('Total number of images:', nrof_images_total)
     print('Number of successfully aligned images:', nrof_successfully_aligned)
-    print('Number of resized images (MTCNN cannot detect face in these images):', nrof_unchanged_images)
+    print('Number of resized images (dlib cannot detect face in these images):', nrof_unchanged_images)
 
 
 def parse_arguments(argv):
