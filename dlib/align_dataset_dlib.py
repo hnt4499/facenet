@@ -99,7 +99,7 @@ def main(args):
                     	# Get the the face's pose
                         pose_landmarks = face_pose_predictor(img, face_rect)
                     	# Use openface to calculate and perform the face alignment
-                        alignedFace = face_aligner.align(534, img, face_rect, landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
+                        alignedFace = face_aligner.align(160, img, face_rect, landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
                         misc.imsave(output_filename, alignedFace)
                         nrof_successfully_aligned += 1
 
@@ -107,8 +107,8 @@ def main(args):
                         filename_base, file_extension = os.path.splitext(output_filename)
                         # Add 'fail' to indicates that dlib cannot detect face in this image.
                         output_filename = "{}{}".format(filename_base + '_failed', file_extension)
-                        nrof_unchanged_images += 1
                         misc.imsave(output_filename, img)
+                        nrof_unchanged_images += 1
 
     print('Total number of images:', nrof_images_total)
     print('Number of successfully aligned images:', nrof_successfully_aligned)
