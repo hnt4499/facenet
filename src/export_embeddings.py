@@ -64,14 +64,12 @@ def load_dataset(path, classes):
     Returns:
     - X: training images in nparray
     - Y: training labels
+    - nrof_images_batch: total number of images in this batch.
     '''
     X, Y  = [], []
 
-    count = 0
+    nrof_images_batch = 0
     for cls in classes:
-        count += 1
-        if count % 200 == 1:
-            print("Loading class", cls)
 
         class_path = os.path.join(path, str(cls))
         # If not a directory -> skip
@@ -82,14 +80,19 @@ def load_dataset(path, classes):
         for image in images:
             image_path = os.path.join(class_path, image)
             img = cv2.imread(image_path)
+
             X.append(img)
             Y.append(cls)
+
+            nrof_images_batch += 1
+            if nrof_images_batch % 500 == 1:
+                print("Loading image", cls)
 
 
     X = np.stack(X)
     Y = np.stack(Y)
 
-    return X, Y
+    return X, Y, nrof_images_batch
 
 
 
@@ -127,19 +130,26 @@ def main(args):
 
             start_time = time.time()
 
+            start_image = 0
+
             for i in range(nrof_batches):
                 if i == nrof_batches - 1:
                     n = nrof_classes
                 else:
                     n = i * batch_size + batch_size
                 # Get images for the batch
-                X, Y = load_dataset(input_dir, classes[i * batch_size:n])
+                X, Y, nrof_images_batch = load_dataset(input_dir, classes[i * batch_size:n])
                 labels.append(Y)
 
                 feed_dict = {images_placeholder: X, phase_train_placeholder:False}
+
                 # Use the facenet model to calcualte embeddings
                 embed = sess.run(embeddings, feed_dict=feed_dict)
-                emb_array[i * batch_size:n, :] = embed
+                emb_array[start_image:start_image + nrof_images_batch, :] = embed
+
+                # Update the start index of the batch
+                start_image += nrof_images_batch
+
                 print('Completed batch', i+1, 'of', nrof_batches)
 
             run_time = time.time() - start_time
