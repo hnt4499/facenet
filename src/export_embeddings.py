@@ -164,9 +164,15 @@ def main(args):
 
             # Exporting...
             output_dir = args.output_dir
-            emb_dir = os.path.join(output_dir, args.embeddings_name)
-            labels_dir = os.path.join(output_dir, args.labels_name)
-            examples_dir = os.path.join(output_dir, args.examples_name)
+            # This is for compatibility of Kaggle kernel.
+            if output_dir == '':
+                emb_dir = args.embeddings_name
+                labels_dir = args.labels_name
+                examples_dir = args.examples_name
+            else:
+                emb_dir = os.path.join(output_dir, args.embeddings_name)
+                labels_dir = os.path.join(output_dir, args.labels_name)
+                examples_dir = os.path.join(output_dir, args.examples_name)
 
             np.save(emb_dir, emb_array)
             np.save(labels_dir, labels)
@@ -180,8 +186,8 @@ def parse_arguments(argv):
         help='Directory containing the meta_file and ckpt_file.')
     parser.add_argument('input_dir', type=str,
         help='Directory containing images.')
-    parser.add_argument('output_dir', type=str,
-        help='Directory to which exported features will be saved.')
+    parser.add_argument('--output_dir', type=str,
+        help='Directory to which exported features will be saved.', default='')
     parser.add_argument('--class_batch', type=int,
         help='Number of class(es) stored in memory at a time.', default=2)
     parser.add_argument('--image_size', type=int,
