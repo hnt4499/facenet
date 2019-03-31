@@ -204,7 +204,7 @@ def parse_arguments(argv):
         help='String of which the labels numpy array is saved as. This assumes that all classes are of integer.',
         default='labels.npy')
     parser.add_argument('--examples_name', type=str,
-        help='String of which the nrof_examples numpy array is saved as.',
+        help='String of which the nrof_examples for each class numpy array is saved as.',
         default='examples.npy')
     return parser.parse_args(argv)
 
