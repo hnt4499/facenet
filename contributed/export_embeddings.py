@@ -144,17 +144,18 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
     nrof_samples = len(image_paths)
     img_list = [None] * nrof_samples
     for i in xrange(nrof_samples):
-        print(image_paths[i])
         img = misc.imread(os.path.expanduser(image_paths[i]))
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
-        det = np.squeeze(bounding_boxes[0,0:4])
-        bb = np.zeros(4, dtype=np.int32)
-        bb[0] = np.maximum(det[0]-margin/2, 0)
-        bb[1] = np.maximum(det[1]-margin/2, 0)
-        bb[2] = np.minimum(det[2]+margin/2, img_size[1])
-        bb[3] = np.minimum(det[3]+margin/2, img_size[0])
-        cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
+        if len(bounding_boxes) != 0:
+            det = np.squeeze(bounding_boxes[0,0:4])
+            bb = np.zeros(4, dtype=np.int32)
+            bb[0] = np.maximum(det[0]-margin/2, 0)
+            bb[1] = np.maximum(det[1]-margin/2, 0)
+            bb[2] = np.minimum(det[2]+margin/2, img_size[1])
+            bb[3] = np.minimum(det[3]+margin/2, img_size[0])
+            cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
+        else: cropped = img
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
         prewhitened = facenet.prewhiten(aligned)
         img_list[i] = prewhitened
@@ -168,7 +169,7 @@ def parse_arguments(argv):
     parser.add_argument('data_dir', type=str,
         help='Directory containing images. If images are not already aligned and cropped include --is_aligned False.')
     parser.add_argument('--is_aligned', type=str,
-        help='Is the data directory already aligned and cropped?', default=True)
+        help='Is the data directory already aligned and cropped?', default=False)
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--margin', type=int,
