@@ -1,3 +1,2 @@
-import numpy as np
-labels = np.zeros((10,))
-print(type(labels[0]))
+import sys
+sys.path.append('D:/Study/Local_Project/facenet/src')
