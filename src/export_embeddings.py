@@ -126,7 +126,7 @@ def main(args):
 
             embedding_size = embeddings.get_shape()[1]
             emb_array = np.zeros((nrof_images, embedding_size))
-            labels = []
+            labels = np.zeros((nrof_images,))
 
             start_time = time.time()
 
@@ -139,7 +139,8 @@ def main(args):
                     n = i * batch_size + batch_size
                 # Get images for the batch
                 X, Y, nrof_images_batch = load_dataset(input_dir, classes[i * batch_size:n])
-                labels.append(Y)
+
+                labels[start_image:start_image + nrof_images_batch] = Y
 
                 feed_dict = {images_placeholder: X, phase_train_placeholder:False}
 
@@ -156,7 +157,7 @@ def main(args):
             print('Run time: ', run_time)
 
             # Export embeddings and labels
-            labels  = np.stack(labels)
+            labels  = np.stack(labels, axis=0)
 
             # Create a list that maps each class to their number of examples.
             unique, examples = np.unique(labels, return_counts=True)
@@ -167,7 +168,6 @@ def main(args):
             labels_dir = os.path.join(output_dir, args.labels_name)
             examples_dir = os.path.join(output_dir, args.examples_name)
 
-            print(emb_array.shape, labels.shape, examples.shape)
             np.save(emb_dir, emb_array)
             np.save(labels_dir, labels)
             np.save(examples_dir, examples)
